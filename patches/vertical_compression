@@ -1,0 +1,51 @@
+Index: myfmt/gofmt.go
+===================================================================
+--- myfmt.orig/gofmt.go	2012-12-06 11:58:51.205850913 -0800
++++ myfmt/gofmt.go	2012-12-06 12:01:13.704862019 -0800
+@@ -10,7 +10,7 @@
+ 	"fmt"
+ 	"go/ast"
+ 	"go/parser"
+-	"go/printer"
++	"myfmt/printer"
+ 	"go/scanner"
+ 	"go/token"
+ 	"io"
+Index: myfmt/printer/nodes.go
+===================================================================
+--- myfmt.orig/printer/nodes.go	2012-12-06 11:58:51.205850913 -0800
++++ myfmt/printer/nodes.go	2012-12-06 12:01:13.708862018 -0800
+@@ -886,8 +886,33 @@
+ 	}
+ }
+ 
++func (p *printer) tryCompressed(s *ast.BlockStmt) bool {
++	if len(s.List) == 1 {
++		// eg. the statement ('if ... {', 'for ... {', etc)
++		st_pos, st_end := s.Pos(), s.End()
++		// the expression block
++		e_pos, e_end := s.List[0].Pos(), s.List[0].End()
++		// starting column of statement
++		col := p.posFor(st_pos).Column
++		// check that expression isn't multi-line
++		if (p.lineFor(e_end) - p.lineFor(e_pos)) == 0 {
++			// if short enough, keep on same line
++			if (int(st_end - st_pos) + int(e_end - e_pos) + col + 1) < 78 {
++				p.print(s.Pos(), token.LBRACE, blank)
++				p.stmt(s.List[0], true)
++				p.print(blank, s.Rbrace, token.RBRACE)
++				return true
++			}
++		}
++	}
++	return false
++}
++
+ // block prints an *ast.BlockStmt; it always spans at least two lines.
+ func (p *printer) block(s *ast.BlockStmt, indent int) {
++	if p.tryCompressed(s) {
++		return
++	}
+ 	p.print(s.Pos(), token.LBRACE)
+ 	p.stmtList(s.List, indent, true)
+ 	p.linebreak(p.lineFor(s.Rbrace), 1, ignore, true)
