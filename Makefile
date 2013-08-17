@@ -1,6 +1,7 @@
 all: build unpatch
 
 build: patch
+	go install
 
 # to apply patch to work on it or build
 patch:
