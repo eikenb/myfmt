@@ -9,16 +9,16 @@ help:
 	@echo "	refresh - update the quilt patchset"
 	@echo "	update 	- pull in new go source from GOROOT"
 	@echo "	clean 	- unpatch & clean up git"
-
-# To update binary run...
-# 'make all' -> 'make clean'
-# - make sure you have the go workspace setup
-#
-# To update to new source, make...
-# update->commit->patch->[fix]->refresh->clean
-#
-# To work on patch...
-# patch->[work]->refresh->clean
+	@echo ""
+	@echo "To update binary run... **"
+	@echo "	make all->clean"
+	@echo "	** make sure you have the go workspace setup"
+	@echo ""
+	@echo "To update to new source, make..."
+	@echo "	make update->commit->patch->[fix]->refresh->clean"
+	@echo ""
+	@echo "To work on patch..."
+	@echo "	make patch->[work]->refresh->clean"
 
 all: build unpatch
 
