@@ -10,8 +10,15 @@ help:
 	@echo "	update 	- pull in new go source from GOROOT"
 	@echo "	clean 	- unpatch & clean up git"
 
-# To update binary run 'make all' - make sure you have the go workspace setup
-# To update to new source, make... update->commit->patch->fix->refresh
+# To update binary run...
+# 'make all' -> 'make clean'
+# - make sure you have the go workspace setup
+#
+# To update to new source, make...
+# update->commit->patch->[fix]->refresh->clean
+#
+# To work on patch...
+# patch->[work]->refresh->clean
 
 all: build unpatch
 
