@@ -1,3 +1,18 @@
+.PHONY: help
+help:
+	@echo Usage: make [command]
+	@echo Commands:
+	@echo "	all 	- build, unpatch"
+	@echo "	build 	- patch -> go install"
+	@echo "	patch 	- apply all patches"
+	@echo "	unpatch - undo/unapply all patches"
+	@echo "	refresh - update the quilt patchset"
+	@echo "	update 	- pull in new go source from GOROOT"
+	@echo "	clean 	- unpatch & clean up git"
+
+# To update binary run 'make all' - make sure you have the go workspace setup
+# To update to new source, make... update->commit->patch->fix->refresh
+
 all: build unpatch
 
 build: patch
