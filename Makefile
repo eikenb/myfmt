@@ -51,3 +51,4 @@ endif
 clean: unpatch
 	git reset --hard
 	git clean -f
+	rm -f myfmt
