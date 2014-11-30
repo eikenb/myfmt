@@ -11,7 +11,7 @@
  	"io"
 --- a/printer/nodes.go
 +++ b/printer/nodes.go
-@@ -915,8 +915,35 @@
+@@ -936,8 +936,40 @@
  	}
  }
  
@@ -20,14 +20,19 @@
 +	if len(b.List) == 1 {
 +		// eg. the statement ('if ... {', 'for ... {', etc)
 +		st_pos, st_end := b.Pos(), b.End()
++		_ = st_end
 +		// the expression block
 +		e_pos, e_end := b.List[0].Pos(), b.List[0].End()
-+		// starting column of statement
-+		col := p.posFor(st_pos).Column
 +		// check that expression isn't multi-line
 +		if (p.lineFor(e_end) - p.lineFor(e_pos)) == 0 {
 +			// if short enough, keep on same line
-+			if (int(st_end - st_pos) + int(e_end - e_pos) + col + 1) < 78 {
++			// starting column of block (opening {) - sans tab chars
++			col := p.posFor(st_pos).Column - p.indent
++			// indent in displayed chars
++			indent := p.indent * p.Config.Tabwidth
++			end_bracket_w_padding := 3 // hardcoded below
++			block_len := int(e_end-e_pos) + end_bracket_w_padding
++			if (block_len + indent + col) < 78 {
 +				p.print(b.Pos(), token.LBRACE, blank)
 +				p.stmt(b.List[0], true)
 +				p.print(blank, b.Rbrace, token.RBRACE)
