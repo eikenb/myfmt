@@ -14,10 +14,10 @@ help:
 	@echo "	make all->clean"
 	@echo ""
 	@echo "To update to new source, make..."
-	@echo "	make update->commit->patch->[fix]->refresh->clean"
+	@echo "	make update->commit->patch->[fix]->refresh->commit->clean"
 	@echo ""
 	@echo "To work on patch..."
-	@echo "	make patch->[work]->refresh->clean"
+	@echo "	make patch->[work]->refresh->unpatch->commit->clean"
 
 all: build unpatch
 
