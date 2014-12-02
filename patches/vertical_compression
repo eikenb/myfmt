@@ -16,7 +16,7 @@
  }
  
 +// from vertical_compression patchset
-+func (p *printer) tryCompressed(b *ast.BlockStmt) bool {
++func (p *printer) compressedBlock(b *ast.BlockStmt) bool {
 +	if len(b.List) == 1 {
 +		// eg. the statement ('if ... {', 'for ... {', etc)
 +		st_pos, st_end := b.Pos(), b.End()
@@ -46,7 +46,7 @@
  // block prints an *ast.BlockStmt; it always spans at least two lines.
  func (p *printer) block(b *ast.BlockStmt, nindent int) {
 +	// from vertical_compression patchset
-+	if p.tryCompressed(b) {
++	if p.compressedBlock(b) {
 +		return
 +	}
  	p.print(b.Lbrace, token.LBRACE)
