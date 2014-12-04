@@ -11,7 +11,68 @@
  	"io"
 --- a/printer/nodes.go
 +++ b/printer/nodes.go
-@@ -936,8 +936,40 @@
+@@ -378,6 +378,42 @@
+ 	p.setComment(&ast.CommentGroup{List: []*ast.Comment{{Slash: token.NoPos, Text: text}}})
+ }
+ 
++// Is the struct short enough to fit on one line
++// For now limit to anonymous structs
++// Part of vertical_compression patchset
++func (p *printer) compressibleStruct(list []*ast.Field) bool {
++	const maxSize = 30
++	cum := p.indent * p.Config.Tabwidth + p.pos.Column + len("{ ")
++	for i, f := range list {
++		if f.Tag != nil || f.Comment != nil { return false }
++		if f.Names != nil { return false } // only anonymous
++		namesSize := identListSize(f.Names, maxSize)
++		if namesSize > 0 { namesSize += 1 }
++		cum += p.nodeSize(f.Type, maxSize) + namesSize
++		if i > 0 { cum += len("; ") }
++	}
++	cum += len(" }")
++	return cum < 70
++}
++
++// Compress structs
++// Part of vertical_compression patchset
++func (p *printer) compressedStruct(lbrace token.Pos, list []*ast.Field) {
++	p.print(lbrace, blank, token.LBRACE, blank)
++	for i, f := range list {
++		if i > 0 { p.print(token.SEMICOLON, blank) }
++		for j, n := range f.Names {
++			if j > 0 { p.print(token.COMMA, blank) }
++			p.expr(n)
++		}
++		if len(f.Names) > 0 {
++			p.print(blank)
++		}
++		p.expr(f.Type)
++	}
++	p.print(blank, token.RBRACE)
++}
++
+ func (p *printer) fieldList(fields *ast.FieldList, isStruct, isIncomplete bool) {
+ 	lbrace := fields.Opening
+ 	list := fields.List
+@@ -411,8 +447,16 @@
+ 			return
+ 		}
+ 	}
+-	// hasComments || !srcIsOneLine
+ 
++	// part of vertical_compression patchset
++	// !hasComments && srcIsShort
++	srcIsShort := p.compressibleStruct(list)
++	if !hasComments && srcIsShort {
++		p.compressedStruct(lbrace, list)
++		return
++	}
++
++	// hasComments || !srcIsOneLine
+ 	p.print(blank, lbrace, token.LBRACE, indent)
+ 	if hasComments || len(list) > 0 {
+ 		p.print(formfeed)
+@@ -936,8 +980,40 @@
  	}
  }
  
