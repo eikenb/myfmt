@@ -40,7 +40,7 @@ refresh:
 update: check-goroot
 	find ${GOROOT}/src/cmd/gofmt -maxdepth 1 -type f \
 		! -name '*_test.go' -exec cp {} ./ \;
-	find ${GOROOT}/src/pkg/go/printer -maxdepth 1 -type f \
+	find ${GOROOT}/src/go/printer -maxdepth 1 -type f \
 		! -name '*_test.go' -exec cp {} ./printer \;
 
 check-goroot:
