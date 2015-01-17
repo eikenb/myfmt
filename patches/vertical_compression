@@ -11,7 +11,7 @@
  	"io"
 --- a/printer/nodes.go
 +++ b/printer/nodes.go
-@@ -378,6 +378,42 @@
+@@ -382,6 +382,42 @@
  	p.setComment(&ast.CommentGroup{List: []*ast.Comment{{Slash: token.NoPos, Text: text}}})
  }
  
@@ -54,7 +54,7 @@
  func (p *printer) fieldList(fields *ast.FieldList, isStruct, isIncomplete bool) {
  	lbrace := fields.Opening
  	list := fields.List
-@@ -411,8 +447,16 @@
+@@ -415,8 +451,16 @@
  			return
  		}
  	}
@@ -72,7 +72,7 @@
  	p.print(blank, lbrace, token.LBRACE, indent)
  	if hasComments || len(list) > 0 {
  		p.print(formfeed)
-@@ -936,8 +980,40 @@
+@@ -940,8 +984,40 @@
  	}
  }
  
