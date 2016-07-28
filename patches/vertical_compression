@@ -1,17 +1,21 @@
 --- a/gofmt.go
 +++ b/gofmt.go
-@@ -10,7 +10,7 @@
+@@ -10,11 +10,11 @@
  	"fmt"
  	"go/ast"
  	"go/parser"
 -	"go/printer"
-+	"myfmt/printer"
  	"go/scanner"
  	"go/token"
  	"io"
+ 	"io/ioutil"
++	"myfmt/printer"
+ 	"os"
+ 	"os/exec"
+ 	"path/filepath"
 --- a/printer/nodes.go
 +++ b/printer/nodes.go
-@@ -382,6 +382,42 @@
+@@ -385,6 +385,42 @@
  	p.setComment(&ast.CommentGroup{List: []*ast.Comment{{Slash: token.NoPos, Text: text}}})
  }
  
@@ -54,7 +58,7 @@
  func (p *printer) fieldList(fields *ast.FieldList, isStruct, isIncomplete bool) {
  	lbrace := fields.Opening
  	list := fields.List
-@@ -415,8 +451,16 @@
+@@ -418,8 +454,16 @@
  			return
  		}
  	}
@@ -72,7 +76,7 @@
  	p.print(blank, lbrace, token.LBRACE, indent)
  	if hasComments || len(list) > 0 {
  		p.print(formfeed)
-@@ -940,8 +984,40 @@
+@@ -965,8 +1009,40 @@
  	}
  }
  
@@ -113,3 +117,15 @@
  	p.print(b.Lbrace, token.LBRACE)
  	p.stmtList(b.List, nindent, true)
  	p.linebreak(p.lineFor(b.Rbrace), 1, ignore, true)
+--- a/internal.go
++++ b/internal.go
+@@ -13,8 +13,8 @@
+ 	"bytes"
+ 	"go/ast"
+ 	"go/parser"
+-	"go/printer"
+ 	"go/token"
++	"myfmt/printer"
+ 	"strings"
+ )
+ 
