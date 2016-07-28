@@ -15,7 +15,7 @@
  	"path/filepath"
 --- a/printer/nodes.go
 +++ b/printer/nodes.go
-@@ -385,6 +385,42 @@
+@@ -385,6 +385,54 @@
  	p.setComment(&ast.CommentGroup{List: []*ast.Comment{{Slash: token.NoPos, Text: text}}})
  }
  
@@ -24,14 +24,22 @@
 +// Part of vertical_compression patchset
 +func (p *printer) compressibleStruct(list []*ast.Field) bool {
 +	const maxSize = 30
-+	cum := p.indent * p.Config.Tabwidth + p.pos.Column + len("{ ")
++	cum := p.indent*p.Config.Tabwidth + p.pos.Column + len("{ ")
 +	for i, f := range list {
-+		if f.Tag != nil || f.Comment != nil { return false }
-+		if f.Names != nil { return false } // only anonymous
++		if f.Tag != nil || f.Comment != nil {
++			return false
++		}
++		if f.Names != nil {
++			return false
++		} // only anonymous
 +		namesSize := identListSize(f.Names, maxSize)
-+		if namesSize > 0 { namesSize += 1 }
++		if namesSize > 0 {
++			namesSize += 1
++		}
 +		cum += p.nodeSize(f.Type, maxSize) + namesSize
-+		if i > 0 { cum += len("; ") }
++		if i > 0 {
++			cum += len("; ")
++		}
 +	}
 +	cum += len(" }")
 +	return cum < 70
@@ -42,9 +50,13 @@
 +func (p *printer) compressedStruct(lbrace token.Pos, list []*ast.Field) {
 +	p.print(lbrace, blank, token.LBRACE, blank)
 +	for i, f := range list {
-+		if i > 0 { p.print(token.SEMICOLON, blank) }
++		if i > 0 {
++			p.print(token.SEMICOLON, blank)
++		}
 +		for j, n := range f.Names {
-+			if j > 0 { p.print(token.COMMA, blank) }
++			if j > 0 {
++				p.print(token.COMMA, blank)
++			}
 +			p.expr(n)
 +		}
 +		if len(f.Names) > 0 {
@@ -58,7 +70,7 @@
  func (p *printer) fieldList(fields *ast.FieldList, isStruct, isIncomplete bool) {
  	lbrace := fields.Opening
  	list := fields.List
-@@ -418,8 +454,16 @@
+@@ -418,8 +466,16 @@
  			return
  		}
  	}
@@ -76,7 +88,7 @@
  	p.print(blank, lbrace, token.LBRACE, indent)
  	if hasComments || len(list) > 0 {
  		p.print(formfeed)
-@@ -965,8 +1009,40 @@
+@@ -965,8 +1021,40 @@
  	}
  }
  
