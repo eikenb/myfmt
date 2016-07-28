@@ -88,33 +88,43 @@
  	p.print(blank, lbrace, token.LBRACE, indent)
  	if hasComments || len(list) > 0 {
  		p.print(formfeed)
-@@ -965,8 +1021,40 @@
+@@ -965,8 +1021,50 @@
  	}
  }
  
 +// from vertical_compression patchset
 +func (p *printer) compressedBlock(b *ast.BlockStmt) bool {
++	var did_compress bool
 +	if len(b.List) == 1 {
-+		// eg. the statement ('if ... {', 'for ... {', etc)
-+		st_pos, st_end := b.Pos(), b.End()
-+		_ = st_end
-+		// the expression block
-+		e_pos, e_end := b.List[0].Pos(), b.List[0].End()
-+		// check that expression isn't multi-line
-+		if (p.lineFor(e_end) - p.lineFor(e_pos)) == 0 {
-+			// if short enough, keep on same line
-+			// starting column of block (opening {) - sans tab chars
-+			col := p.posFor(st_pos).Column - p.indent
-+			// indent in displayed chars
-+			indent := p.indent * p.Config.Tabwidth
-+			end_bracket_w_padding := 3 // hardcoded below
-+			block_len := int(e_end-e_pos) + end_bracket_w_padding
-+			if (block_len + indent + col) < 78 {
-+				p.print(b.Pos(), token.LBRACE, blank)
-+				p.stmt(b.List[0], true)
-+				p.print(blank, b.Rbrace, token.RBRACE)
-+				return true
-+			}
++		did_compress = p.openCompressedBlock(b)
++		if did_compress {
++			p.print(blank, b.Rbrace, token.RBRACE)
++		}
++	}
++	return did_compress
++}
++
++// from vertical_compression patchset
++// compressed block with no closing Rbrace, for use with if/else
++func (p *printer) openCompressedBlock(b *ast.BlockStmt) bool {
++	// eg. the statement ('if ... {', 'for ... {', etc)
++	st_pos, st_end := b.Pos(), b.End()
++	_ = st_end
++	// the expression block
++	e_pos, e_end := b.List[0].Pos(), b.List[0].End()
++	// check that expression isn't multi-line
++	if (p.lineFor(e_end) - p.lineFor(e_pos)) == 0 {
++		// if short enough, keep on same line
++		// starting column of block (opening {) - sans tab chars
++		col := p.posFor(st_pos).Column - p.indent
++		// indent in displayed chars
++		indent := p.indent * p.Config.Tabwidth
++		end_bracket_w_padding := 3 // hardcoded below
++		block_len := int(e_end-e_pos) + end_bracket_w_padding
++		if (block_len + indent + col) < 78 {
++			p.print(b.Pos(), token.LBRACE, blank)
++			p.stmt(b.List[0], true)
++			return true
 +		}
 +	}
 +	return false
@@ -129,6 +139,21 @@
  	p.print(b.Lbrace, token.LBRACE)
  	p.stmtList(b.List, nindent, true)
  	p.linebreak(p.lineFor(b.Rbrace), 1, ignore, true)
+@@ -1178,7 +1276,13 @@
+ 	case *ast.IfStmt:
+ 		p.print(token.IF)
+ 		p.controlClause(false, s.Init, s.Cond, nil)
+-		p.block(s.Body, 1)
++		if len(s.Body.List) == 1 && s.Else != nil {
++			p.openCompressedBlock(s.Body)
++			p.print(formfeed)
++			p.print(s.Body.Rbrace, token.RBRACE)
++		} else {
++			p.block(s.Body, 1)
++		}
+ 		if s.Else != nil {
+ 			p.print(blank, token.ELSE, blank)
+ 			switch s.Else.(type) {
 --- a/internal.go
 +++ b/internal.go
 @@ -13,8 +13,8 @@
