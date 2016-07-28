@@ -33,6 +33,7 @@ unpatch:
 	quilt pop -a || true
 
 # after working on a patch, to update it.
+# use 'quilt add [filename]' for new files (before editing)
 refresh:
 	quilt refresh
 
