@@ -15,7 +15,15 @@
  	"path/filepath"
 --- a/printer/nodes.go
 +++ b/printer/nodes.go
-@@ -385,6 +385,54 @@
+@@ -10,6 +10,7 @@
+ 
+ import (
+ 	"bytes"
++	"fmt"
+ 	"go/ast"
+ 	"go/token"
+ 	"strconv"
+@@ -385,6 +386,54 @@
  	p.setComment(&ast.CommentGroup{List: []*ast.Comment{{Slash: token.NoPos, Text: text}}})
  }
  
@@ -70,7 +78,7 @@
  func (p *printer) fieldList(fields *ast.FieldList, isStruct, isIncomplete bool) {
  	lbrace := fields.Opening
  	list := fields.List
-@@ -418,8 +466,16 @@
+@@ -418,8 +467,16 @@
  			return
  		}
  	}
@@ -88,10 +96,11 @@
  	p.print(blank, lbrace, token.LBRACE, indent)
  	if hasComments || len(list) > 0 {
  		p.print(formfeed)
-@@ -965,8 +1021,50 @@
+@@ -965,8 +1022,57 @@
  	}
  }
  
+-// block prints an *ast.BlockStmt; it always spans at least two lines.
 +// from vertical_compression patchset
 +func (p *printer) compressedBlock(b *ast.BlockStmt) bool {
 +	var did_compress bool
@@ -121,6 +130,7 @@
 +		indent := p.indent * p.Config.Tabwidth
 +		end_bracket_w_padding := 3 // hardcoded below
 +		block_len := int(e_end-e_pos) + end_bracket_w_padding
++		fmt.Println(block_len, indent, col)
 +		if (block_len + indent + col) < 78 {
 +			p.print(b.Pos(), token.LBRACE, blank)
 +			p.stmt(b.List[0], true)
@@ -130,24 +140,35 @@
 +	return false
 +}
 +
- // block prints an *ast.BlockStmt; it always spans at least two lines.
++// block prints an *ast.BlockStmt; one or more lines
  func (p *printer) block(b *ast.BlockStmt, nindent int) {
 +	// from vertical_compression patchset
 +	if p.compressedBlock(b) {
 +		return
 +	}
++	p.fatblock(b, nindent)
++}
++
++// block prints an *ast.BlockStmt; it always spans at least two lines.
++// renamed fatblock with above overriding for vertical_compression patchset
++func (p *printer) fatblock(b *ast.BlockStmt, nindent int) {
  	p.print(b.Lbrace, token.LBRACE)
  	p.stmtList(b.List, nindent, true)
  	p.linebreak(p.lineFor(b.Rbrace), 1, ignore, true)
-@@ -1178,7 +1276,13 @@
+@@ -1178,7 +1284,18 @@
  	case *ast.IfStmt:
  		p.print(token.IF)
  		p.controlClause(false, s.Init, s.Cond, nil)
 -		p.block(s.Body, 1)
++		// from vertical_compression patchset
++		// make sure else goes on its own line
 +		if len(s.Body.List) == 1 && s.Else != nil {
-+			p.openCompressedBlock(s.Body)
-+			p.print(formfeed)
-+			p.print(s.Body.Rbrace, token.RBRACE)
++			if p.openCompressedBlock(s.Body) {
++				p.print(formfeed)
++				p.print(s.Body.Rbrace, token.RBRACE)
++			} else {
++				p.fatblock(s.Body, 1)
++			}
 +		} else {
 +			p.block(s.Body, 1)
 +		}
