@@ -2,8 +2,8 @@
 help:
 	@echo Usage: make [command]
 	@echo Commands:
-	@echo "	all 	- build, unpatch"
-	@echo "	build 	- patch -> go install"
+	@echo "	all 	- install, unpatch"
+	@echo "	install 	- patch -> go install"
 	@echo "	patch 	- apply all patches"
 	@echo "	unpatch - undo/unapply all patches"
 	@echo "	refresh - update the quilt patchset"
@@ -19,12 +19,12 @@ help:
 	@echo "To work on patch..."
 	@echo "	make patch->[work]->refresh->unpatch->commit->clean"
 
-all: build unpatch
+all: install unpatch
 
-build: patch
+install: patch
 	go install
 
-# to apply patch to work on it or build
+# to apply patch to work on it or build it
 patch:
 	quilt push -a
 
