@@ -1,3 +1,7 @@
+Deprecated, see https://github.com/eikenb/gocompact for my latest try at this.
+
+---
+
 This is my hack of gofmt to format the code in a way I prefer for editing. In
 particular it tries to use less vertical space when possible, attempting to be
 similar to the format often seen in presentations.
